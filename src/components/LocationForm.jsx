@@ -1,102 +1,270 @@
 import React, { useState } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Row, Form, FormGroup, Label, Input } from "reactstrap";
-import { } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Row, Form, FormGroup, Label, Input, Table, ButtonGroup } from "reactstrap";
+import USStateList from '../data/USStateList';
+import timezones from '../data/timezones';
+import facilityData from '../data/facilityData';
 
-const LocationForm = (props) => {
-    const {
-        buttonLabel,
-        className
-    } = props;
+const formatPhone = (value, previousValue) => {
+    if (!value) return value;
+    const currentValue = value.replace(/[^\d]/g, '');
+    const cvLength = currentValue.length;
+
+    if (!previousValue || value.length > previousValue.length) {
+        if (cvLength < 4) return currentValue;
+        if (cvLength < 7) return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
+        return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3, 6)}-${currentValue.slice(6, 10)}`;
+    }
+};
+// const extract = (str, pattern) => (str.match(pattern) || []).pop() || '';
+const formatZip = (value, previousValue) => {
+    //const d = extract(value, "[0-9a-zA-Z]+");
+    if (!value) return value;
+    const currentValue = value.replace(/[^\da-zA-Z]/g, '');
+    const cvLength = currentValue.length;
+    if (!previousValue || value.length > previousValue.length) {
+        if (cvLength < 10) return currentValue;
+        return currentValue.slice(0, 10)
+    }
+}
+
+const validateInput = value => {
+    let error = ""
+
+    if (!value) error = "Required!"
+    else if (value.length !== 14) error = "Invalid phone format. ex: (555) 555-5555";
+
+    return error;
+};
+
+const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg }) => {
     const [modal, setModal] = useState(false);
+    const [nestedModal, setNestedModal] = useState(false);
+    const [location, setLocation] = useState(locationData);
 
+    //const [tags, setTags] = React.useState(["example tag"])
     const toggle = () => setModal(!modal);
+    const toggleNested = () => {
+        setNestedModal(!nestedModal);
+    }
+    const { locationName, city, state, zipCode, phone, timeZone, facilityTimes, appoinmentPool } = location;
+
+    const handlePhoneChange = (value) => {
+        setLocation(prev => {
+            return ({ ...prev, phone: formatPhone(value, prev.phone) })
+        })
+    };
+    const handleZipCodeChange = (value) => {
+        setLocation(prev => {
+            return ({ ...prev, zipCode: formatZip(value, prev.zipCode) })
+        })
+    };
+
+    const getFacility = () => {
+        return (facilityData.map((v, i) => {
+            return (
+                <tr key={i}>
+                    <th >
+                        <FormGroup check={v.checked} inline className="day-check">
+                            <Label check className="day-label">
+                                <Input type="checkbox" className="day-input" />{' '}
+                                {v.day}
+                            </Label>
+                        </FormGroup>
+                    </th>
+                    <td>
+                        <Input className="facility-time" type="text" value={v.fromTime} />
+                        <ButtonGroup className="am-pm-group">
+                            <Button color="primary"
+                                active={v.fromAmPm === 'AM'}
+                            >AM</Button>
+                            <Button color="primary"
+                                active={v.fromAmPm === 'PM'}
+                            >PM</Button>
+                        </ButtonGroup>
+
+                    </td>
+                    <td>
+                        <Input className="facility-time" type="text" value={v.toTime} />
+                        <ButtonGroup className="am-pm-group">
+                            <Button color="primary"
+                                active={v.toAmPm === 'AM'}
+                            >AM</Button>
+                            <Button color="primary"
+                                active={v.toAmPm === 'PM'}
+                            >PM</Button>
+                        </ButtonGroup>
+                    </td>
+                    <td>
+                        <Button outline color="cadet" className="pull-right">Apply to all Checked</Button>{' '}
+                    </td>
+                </tr>
+            )
+        }))
+    }
+    // setLocation(prev => {
+    //     return ({ ...prev, zipCode: value })
+    // })
     return (
         <div>
             <Button color="cadet" className="btn-curved" onClick={toggle}>{buttonLabel}</Button>
-            <Modal isOpen={modal} toggle={toggle} className={className}>
+            <Modal isOpen={modal} toggle={toggle} className={className} backdrop={false}>
                 <ModalHeader>Add Locations</ModalHeader>
-                <Form autocomplete="off">
+                <Form autoComplete="off" onSubmit={addLocationHandler}>
                     <ModalBody>
                         <FormGroup>
-                            <Input type="text" autoComplete="off" name="name" id="loc-name" placeholder="1234 Main St" />
-                            <Label for="loc-name">Location Name</Label>
+                            <Input type="text"
+                                autoComplete="off"
+                                name="name"
+                                id="loc-name"
+                                value={locationName}
+                                onChange={({ target: { value } }) => {
+                                    setLocation(prev => {
+                                        return { ...prev, locationName: value }
+                                    })
+                                }} />
+                            <Label for="loc-name">Location Name*</Label>
                         </FormGroup>
                         <Row form>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Input type="text" name="address1" id="loc-address1" />
-                                    <Label for="loc-address1">Address Line 1</Label>
+                                    <Input type="text" name="city" id="loc-city"
+                                        value={city}
+                                        onChange={({ target: { value } }) => {
+                                            setLocation(prev => {
+                                                return ({ ...prev, city: value })
+                                            })
+                                        }} />
+                                    <Label for="loc-city">City*</Label>
                                 </FormGroup>
                             </Col>
-                            <Col md={6}>
-                            <FormGroup>
-                                    <Input type="text" name="suit" id="suit" />
-                                    <Label for="suit">Suite No.</Label>
-                                </FormGroup>
-                            </Col>
-                        </Row>
-                        <Row form>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Input type="text" name="address2" id="loc-address2" />
-                                    <Label for="loc-address2">Address Line 2</Label>
-                                </FormGroup>
-                            </Col>
-                            <Col md={3}>
-                            <FormGroup>
-                                    <Input type="text" name="city" id="loc-city" />
-                                    <Label for="loc-city">Suite No.</Label>
-                                </FormGroup>
-                            </Col>
-                            <Col md={3}>
-                            <FormGroup>
-                                    <Input type="text" name="state" id="loc-state" />
-                                    <Label for="loc-state">Suite No.</Label>
+                                    <Input
+                                        type="select"
+                                        name="state" id="loc-state"
+                                        value={state}
+                                        onChange={({ target: { value } }) => {
+                                            setLocation(prev => {
+                                                return ({ ...prev, state: value })
+                                            })
+                                        }}>
+                                        {USStateList.map((v, i) => (
+                                            <option key={i} value={v.abbreviation}>{v.name}</option>
+                                        ))}
+                                    </Input>
+                                    <Label for="loc-state">State*</Label>
                                 </FormGroup>
                             </Col>
                         </Row>
                         <Row form>
                             <Col md={3}>
                                 <FormGroup>
-                                    <Input type="text" name="zipcode" id="loc-zipcode" />
+                                    <Input type="text" name="zipcode" id="loc-zipcode"
+                                        value={zipCode}
+                                        onChange={({ target: { value } }) => {
+                                            handleZipCodeChange(value)
+                                        }}
+                                    />
                                     <Label for="loc-zipcode">Zip Code</Label>
                                 </FormGroup>
                             </Col>
                             <Col md={3}>
-                            <FormGroup>
-                                    <Input type="text" name="phone" id="loc-phone" />
-                                    <Label for="loc-phone">Phone Number</Label>
+                                <FormGroup>
+                                    <Input type="text" name="phone" id="loc-phone"
+                                        placeholder="(xxx) xxx-xxxx"
+                                        value={phone}
+                                        onChange={({ target: { value } }) => {
+                                            handlePhoneChange(value)
+                                        }}
+                                    />
+                                    <Label for="loc-phone">Phone Number*</Label>
                                 </FormGroup>
                             </Col>
                             <Col md={6}>
-                            <FormGroup>
-                                    <Input type="text" name="timezone" id="loc-timezone" />
-                                    <Label for="loc-timezone">Time Zone</Label>
+                                <FormGroup>
+                                    <Input
+                                        type="select"
+                                        name="timezone" id="loc-timezone"
+                                        value={timeZone}
+                                        onChange={({ target: { value } }) => {
+                                            setLocation(prev => {
+                                                return ({ ...prev, timeZone: value })
+                                            })
+                                        }}>
+                                        {timezones.map((v, i) => (
+                                            <option key={i} value={v.offset}>{v.offset} {v.name}</option>
+                                        ))}
+                                    </Input>
+                                    {/* <Input type="text" name="timezone" id="loc-timezone"
+                                        value={timeZone}
+                                        onChange={({ target: { value } }) => {
+                                            setLocation(prev => {
+                                                return ({ ...prev, timeZone: value })
+                                            })
+                                        }}
+                                    /> */}
+                                    <Label for="loc-timezone">Time Zone*</Label>
                                 </FormGroup>
                             </Col>
                         </Row>
                         <Row form>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Input type="text" name="facility" id="loc-facility" />
+                                    <Input type="text" name="facility" id="loc-facility"
+                                        onClick={toggleNested} />
                                     <Label for="loc-facility">Facility Times</Label>
                                 </FormGroup>
                             </Col>
                             <Col md={6}>
-                            <FormGroup>
-                                    <Input type="text" name="appoinment" id="loc-appoinment" />
-                                    <Label for="loc-appoinment">Appoinment Pool</Label>
+                                <FormGroup>
+                                    <Input type="text" name="appoinment" id="loc-appoinment"
+                                        value={appoinmentPool}
+                                        onChange={({ target: { value } }) => {
+                                            setLocation(prev => {
+                                                return ({ ...prev, appoinmentPool: value })
+                                            })
+                                        }} />
+                                    <Label className="appoinment-label" for="loc-appoinment">Appoinment Pool</Label>
                                 </FormGroup>
                             </Col>
                         </Row>
+                        {appoinmentPool.length > 0 && (appoinmentPool.split(',').map((v, i) => {
+                            return (
+                                <span className="tag-span" key={i}>{v}</span>
+                            )
+                        }))}
+                        {addLoactionError && <div className="errorMsg">{addLoactionErrorMsg}</div>}
                     </ModalBody>
                     <ModalFooter>
                         <Button color="danger" onClick={toggle}>Cancel</Button>
-                        <Button color="cadet" onClick={toggle}>Save</Button>{' '}
+                        <Button color="cadet" type="submit" >Save</Button>{' '}
                     </ModalFooter>
                 </Form>
             </Modal>
-        </div>
+            <Modal isOpen={nestedModal} toggle={toggleNested} className={className} backdrop={false} keyboard={false}>
+                <ModalHeader>Facility Times</ModalHeader>
+                <ModalBody>
+                    <Table borderless>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {getFacility()}
+
+                        </tbody>
+                    </Table>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="danger" onClick={toggleNested}>Cancel</Button>{' '}
+                    <Button color="cadet">Save</Button>{' '}
+                </ModalFooter>
+            </Modal>
+        </div >
     )
 }
 
