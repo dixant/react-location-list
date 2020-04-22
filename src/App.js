@@ -7,10 +7,7 @@ function App() {
   return (
     <div>
       <Location></Location>
-      <LocationBlank
-        heading="Kindly Add Your Location First"
-        subHeading="There is no location added right now">
-      </LocationBlank>
+      
 
     </div>
   );
