@@ -16,6 +16,23 @@ body {
   border-color: #3f7ca9 !important;
 }
 
+.btn-cadet:hover {
+  color: #fff !important;
+  background-color: #2f5f82 !important;
+  border-color: #2f5f82 !important;
+}
+
+.btn-outline-cadet {
+  color: #3f7ca9 !important;
+  border-color: #3f7ca9 !important;
+
+  &:hover {
+    color: #fff !important;
+    background-color: #2f5f82 !important;
+    border-color: #2f5f82 !important;
+  }
+}
+
 .navbar-brand {
   text-decoration: none;
   color: #777777;
@@ -26,11 +43,7 @@ body {
   border-radius: 20px !important;
 }
 
-.btn-cadet:hover {
-  color: #fff !important;
-  background-color: #2f5f82 !important;
-  border-color: #2f5f82 !important;
-}
+
 
 .d-center {
   text-align: center;
@@ -56,23 +69,49 @@ body {
   max-width: 700px;
 }
 
-
+.pull-right{
+  float: right;
+}
 .add-location-form {
-  font-size: 12px;
+  font-size: 12px !important;
 
+  .react-tag-input input {
+    font-size: 12px;
+    border: 0;
+    border-radius: 0;
+    border-bottom: 2px solid #cec2c2;
+    outline: none;
+    background-color: transparent;
+    height: 32px;
 
+    &:focus {
+      border: 0;
+      border-bottom: 2px solid #3f7ca9;
+      box-shadow: none;
+
+      .react-tag-input .appoinment-label {
+        color: #3f7ca9;
+        font-weight: 600;
+      }
+    }
+  }
+  input, button{
+    font-size: 12px !important;
+  }
   .form-group {
     display: flex;
     flex-direction: column-reverse;
 
 
-    input {
+    input,
+    select {
       font-size: 12px;
       border: 0;
       border-radius: 0;
       border-bottom: 2px solid #cec2c2;
       outline: none;
       background-color: transparent;
+      height: 32px;
 
       &:focus {
         border: 0;
@@ -85,9 +124,40 @@ body {
         }
       }
     }
-    label{
+
+    label {
       margin-bottom: 0;
     }
+  }
+
+  .facility-time {
+    display: inline-flex;
+    position: relative;
+    width: 75px;
+  }
+  th, td{
+    padding: 5px !important;
+  }
+  .day-check {
+    line-height: 38px;
+    margin: 0;
+    margin-left: 20px;
+  }
+
+  .day-label {
+    margin: 0;
+  }
+
+  .day-input {
+    // margin-top: 12px;
+  }
+
+  .am-pm-group {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+    margin-top: -6px;
+    margin-left: 10px;
   }
 
   .modal-title {
@@ -96,5 +166,18 @@ body {
 
   .modal-content {
     border-radius: 0;
+  }
+
+  .errorMsg {
+    color: red;
+  }
+
+  .tag-span {
+    background: #ccc;
+    padding: 8px;
+    border-radius: 33px;
+    color: #3f7ca9;
+    margin: 5px;
+    display: inline-block;
   }
 }
