@@ -9,11 +9,11 @@ const formatPhone = (value, previousValue) => {
     const currentValue = value.replace(/[^\d]/g, '');
     const cvLength = currentValue.length;
 
-    if (!previousValue || value.length > previousValue.length) {
+    //if (!previousValue || value.length > previousValue.length) {
         if (cvLength < 4) return currentValue;
         if (cvLength < 7) return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
         return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3, 6)}-${currentValue.slice(6, 10)}`;
-    }
+   // }
 };
 // const extract = (str, pattern) => (str.match(pattern) || []).pop() || '';
 const formatZip = (value, previousValue) => {
@@ -26,6 +26,7 @@ const formatZip = (value, previousValue) => {
         return currentValue.slice(0, 10)
     }
 }
+
 
 const validateInput = value => {
     let error = ""
@@ -40,6 +41,8 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     const [modal, setModal] = useState(false);
     const [nestedModal, setNestedModal] = useState(false);
     const [location, setLocation] = useState(locationData);
+    const [facility, setFacility] = useState(facilityData);
+
 
     //const [tags, setTags] = React.useState(["example tag"])
     const toggle = () => setModal(!modal);
@@ -58,52 +61,249 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
             return ({ ...prev, zipCode: formatZip(value, prev.zipCode) })
         })
     };
+    const handleTimeChange = (target, fromto) => {
+        let { name, value } = target;
+        let facilityData = facility["facility"];
+        let currentFacility = facilityData[name];
+        console.log(currentFacility)
+        currentFacility = {
+            day: currentFacility.day,
+            checked: currentFacility.checked,
+            fromTime: fromto === "fromtime" ? value : currentFacility.fromTime,
+            fromAmPm: currentFacility.fromAmPm,
+            toTime: fromto === "totime" ? value : currentFacility.toTime,
+            toAmPm: currentFacility.toAmPm
+        }
+        facilityData[name] = currentFacility;
+        setFacility(prev => {
+            return ({ facility: facilityData })
+        })
+    }
+    const applyToAllChecked = (currentTarget, rowData) => {
+        let facilityData = facility["facility"];
+        let newTarget = {};
+        Object.values(facilityData).map((v, i) => {
+            if (v.checked === true) {
+                v.fromTime = rowData.fromTime;
+                v.fromAmPm = rowData.fromAmPm;
+                v.toTime = rowData.toTime;
+                v.toAmPm = rowData.toAmPm;
+            }
+            newTarget[v.day] = v;
+        })
+        setFacility(prev => {
+            return ({ facility: newTarget })
+        })
+    }
+    const handleAMPMChange = (currentTarget, fromto) => {
+        let { name, value } = currentTarget;
+        let facilityData = facility["facility"];
+        let currentFacility = facilityData[name];
+        currentFacility = {
+            day: currentFacility.day,
+            checked: currentFacility.checked,
+            fromTime: currentFacility.fromTime,
+            fromAmPm: fromto === "fromtime" ? value : currentFacility.fromAmPm,
+            toTime: currentFacility.toTime,
+            toAmPm: fromto === "totime" ? value : currentFacility.toAmPm
+        }
+        facilityData[name] = currentFacility;
+        setFacility(prev => {
+            return ({ facility: facilityData })
+        })
+    }
+    const formatTime = (time, day, fromto) => {
+        let hr = 0,
+            min = 0,
+            ampm = "AM"
+        if (!time) {
+            hr = 12
+        }
+        else {
+            const currentTime = time.replace(/[^\d:]/g, '');
+            console.log(currentTime)
+            if (!currentTime) {
+                hr = 12
+            } else {
+                if (currentTime.includes(":")) {
+                    console.log(currentTime.indexOf(":") + 2)
+                    hr = parseInt(currentTime.substring(0, currentTime.indexOf(":")).substring(0, 2)) || 12;
+                    ampm = hr > 12 && hr <= 24 ? "PM" : hr > 24 ? "PM" : "AM";
+                    hr = hr > 12 && hr <= 24 ? hr - 12 : hr > 24 ? 12 : hr;
 
+                    min = parseInt(currentTime.substring(currentTime.indexOf(":") + 1, currentTime.indexOf(":") + 3)) || 0
+                    if (min > 59) {
+                        min = 59;
+                    }
+                }
+                else {
+                    hr = parseInt(currentTime.substring(0, 2)) || 12
+                    ampm = hr > 12 && hr <= 24 ? "PM" : hr > 24 ? "PM" : "AM";
+                    hr = hr > 12 && hr <= 24 ? hr - 12 : hr > 24 ? 12 : hr;
+                }
+            }
+        }
+        let hour = hr < 10 ? `0${hr}` : hr;
+        let minute = min < 10 ? `0${min}` : min;
+        let facilityData = facility["facility"];
+        let currentFacility = facilityData[day];
+        currentFacility = {
+            day: currentFacility.day,
+            checked: currentFacility.checked,
+            fromTime: fromto === "fromtime" ? `${hour}:${minute}` : currentFacility.fromTime,
+            fromAmPm: fromto === "fromtime" ? ampm : currentFacility.fromAmPm,
+            toTime: fromto === "totime" ? `${hour}:${minute}` : currentFacility.toTime,
+            toAmPm: fromto === "totime" ? ampm : currentFacility.toAmPm
+        }
+        facilityData[day] = currentFacility;
+        setFacility(prev => {
+            return ({ facility: facilityData })
+        })
+    }
+    const handleCheckedDays = (cTarget) => {
+        let { name, checked } = cTarget;
+        console.log(name)
+        let facilityData = facility["facility"];
+        let currentFacility = facilityData[name];
+        currentFacility = {
+            day: currentFacility.day,
+            checked: checked,
+            fromTime: currentFacility.fromTime,
+            fromAmPm: currentFacility.fromAmPm,
+            toTime: currentFacility.toTime,
+            toAmPm: currentFacility.toAmPm
+        }
+        facilityData[name] = currentFacility;
+        setFacility(prev => {
+            return ({ facility: facilityData })
+        })
+
+    }
+    const saveFacility = () => {
+        let facilityData = facility["facility"];
+        let availableFacility = {};
+        Object.values(facilityData).map((v, i) => {
+            if (v.checked === true) {
+                availableFacility[v.day] = v;
+            }
+
+        })
+        setLocation(prev => {
+            return ({ ...prev, facilityTimes: availableFacility })
+        })
+        setNestedModal(!nestedModal)
+    }
     const getFacility = () => {
-        return (facilityData.map((v, i) => {
+        return (Object.values(facility.facility).map((v, i) => {
+            //console.log(facility)
             return (
                 <tr key={i}>
                     <th >
-                        <FormGroup check={v.checked} inline className="day-check">
-                            <Label check className="day-label">
-                                <Input type="checkbox" className="day-input" />{' '}
+                        <FormGroup inline className="day-check">
+                            <Label className="day-label">
+                                <Input type="checkbox"
+                                    name={v.day}
+                                    checked={v.checked}
+                                    className="day-input"
+                                    onChange={({ currentTarget }) => {
+                                        handleCheckedDays(currentTarget)
+
+                                    }} />
                                 {v.day}
                             </Label>
                         </FormGroup>
                     </th>
                     <td>
-                        <Input className="facility-time" type="text" value={v.fromTime} />
+                        <Input className="facility-time" pattern="\d{1,2}:\d{2}([ap]m)?"
+                            name={v.day}
+                            type="text"
+                            value={v.fromTime}
+                            disabled={!v.checked}
+                            onBlur={({ target: { value, name } }) => formatTime(value, name, "fromtime")}
+                            onChange={({ target }) => { handleTimeChange(target, "fromtime") }} />
                         <ButtonGroup className="am-pm-group">
-                            <Button color="primary"
+                            <Button color="cadet-toggle"
                                 active={v.fromAmPm === 'AM'}
+                                name={v.day}
+                                value="AM"
+                                disabled={!v.checked}
+                                onClick={({ currentTarget }) => { handleAMPMChange(currentTarget, "fromtime") }}
                             >AM</Button>
-                            <Button color="primary"
+                            <Button color="cadet-toggle"
                                 active={v.fromAmPm === 'PM'}
+                                name={v.day}
+                                value="PM"
+                                disabled={!v.checked}
+                                onClick={({ currentTarget }) => { handleAMPMChange(currentTarget, "fromtime") }}
                             >PM</Button>
                         </ButtonGroup>
 
                     </td>
                     <td>
-                        <Input className="facility-time" type="text" value={v.toTime} />
-                        <ButtonGroup className="am-pm-group">
-                            <Button color="primary"
+                        <Input className="facility-time"
+                            name={v.day}
+                            type="text"
+                            value={v.toTime}
+                            disabled={!v.checked}
+                            onBlur={({ target: { value, name } }) => formatTime(value, name, "totime")}
+                            onChange={({ target }) => { handleTimeChange(target, "totime") }} />
+                        <ButtonGroup className="am-pm-group" >
+                            <Button color="cadet-toggle"
                                 active={v.toAmPm === 'AM'}
+                                name={v.day}
+                                value="AM"
+                                disabled={!v.checked}
+                                onClick={({ currentTarget }) => { handleAMPMChange(currentTarget, "totime") }}
                             >AM</Button>
-                            <Button color="primary"
+                            <Button color="cadet-toggle"
                                 active={v.toAmPm === 'PM'}
+                                name={v.day}
+                                value="PM"
+                                disabled={!v.checked}
+                                onClick={({ currentTarget }) => { handleAMPMChange(currentTarget, "totime") }}
                             >PM</Button>
                         </ButtonGroup>
                     </td>
                     <td>
-                        <Button outline color="cadet" className="pull-right">Apply to all Checked</Button>{' '}
+                        <Button outline color="cadet"
+                            className="pull-right"
+                            value={v}
+                            name={v.day}
+                            disabled={!v.checked}
+                            onClick={({ currentTarget }) => { applyToAllChecked(currentTarget, v) }}
+                        >Apply to all Checked</Button>{' '}
                     </td>
                 </tr>
             )
         }))
     }
-    // setLocation(prev => {
-    //     return ({ ...prev, zipCode: value })
-    // })
+    const getFacilityDisplay = (data) => {
+        let displayData = [];
+        if (data != {}) {
+            Object.values(data).map(v => {
+                console.log(v);
+                let temp = `[${v.day}, ${v.fromTime}${v.fromAmPm} - ${v.toTime}${v.toAmPm}]`
+                displayData.push(temp)
+            })
+            displayData = displayData.join(' ')
+            return displayData
+        }
+        else return ''
+
+    }
+    const appoinmentPoolHandler = (value) => {
+        let newPool = []
+        let valueArr = []
+        if (value && value.length > 0) {
+            valueArr = value.split(',');
+            valueArr.map((v) => {
+                if (v) { newPool.push(v.trim()) }
+            })
+        }
+        setLocation(prev => {
+            return ({ ...prev, appoinmentPool: newPool.join(",") })
+        })
+    }
     return (
         <div>
             <Button color="cadet" className="btn-curved" onClick={toggle}>{buttonLabel}</Button>
@@ -175,6 +375,9 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                         value={phone}
                                         onChange={({ target: { value } }) => {
                                             handlePhoneChange(value)
+                                            // setLocation(prev => {
+                                            //     return ({ ...prev, phone: value })
+                                            // })
                                         }}
                                     />
                                     <Label for="loc-phone">Phone Number*</Label>
@@ -195,14 +398,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                             <option key={i} value={v.offset}>{v.offset} {v.name}</option>
                                         ))}
                                     </Input>
-                                    {/* <Input type="text" name="timezone" id="loc-timezone"
-                                        value={timeZone}
-                                        onChange={({ target: { value } }) => {
-                                            setLocation(prev => {
-                                                return ({ ...prev, timeZone: value })
-                                            })
-                                        }}
-                                    /> */}
                                     <Label for="loc-timezone">Time Zone*</Label>
                                 </FormGroup>
                             </Col>
@@ -210,7 +405,11 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                         <Row form>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Input type="text" name="facility" id="loc-facility"
+                                    <Input type="text" name="facility"
+                                        id="loc-facility"
+                                        data-objectvalue={JSON.stringify(facilityTimes)}
+                                        value={getFacilityDisplay(facilityTimes)}
+                                        onChange={(e) => { }}
                                         onClick={toggleNested} />
                                     <Label for="loc-facility">Facility Times</Label>
                                 </FormGroup>
@@ -223,15 +422,23 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                             setLocation(prev => {
                                                 return ({ ...prev, appoinmentPool: value })
                                             })
+
+                                        }}
+                                        onBlur={({ target: { value } }) => {
+                                            appoinmentPoolHandler(value)
+
                                         }} />
                                     <Label className="appoinment-label" for="loc-appoinment">Appoinment Pool</Label>
                                 </FormGroup>
                             </Col>
                         </Row>
                         {appoinmentPool.length > 0 && (appoinmentPool.split(',').map((v, i) => {
-                            return (
-                                <span className="tag-span" key={i}>{v}</span>
-                            )
+                            if (v && v.trim() !== "") {
+                                return (
+                                    <span className="tag-span" key={i}>{v}</span>
+                                )
+                            }
+
                         }))}
                         {addLoactionError && <div className="errorMsg">{addLoactionErrorMsg}</div>}
                     </ModalBody>
@@ -261,7 +468,11 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleNested}>Cancel</Button>{' '}
-                    <Button color="cadet">Save</Button>{' '}
+                    <Button color="cadet"
+                        name="saveFacility"
+                        onClick={(e) => {
+                            saveFacility()
+                        }}>Save</Button>{' '}
                 </ModalFooter>
             </Modal>
         </div >

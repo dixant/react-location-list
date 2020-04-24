@@ -33,6 +33,27 @@ body {
   }
 }
 
+
+
+.btn-cadet-toggle:not(:disabled):not(.disabled).active,
+.btn-cadet-toggle:not(:disabled):not(.disabled):active {
+  color: #fff !important;
+  background-color: #2f5f82 !important;
+  border-color: #2f5f82 !important;
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.btn-cadet-toggle {
+  color: #000 !important;
+  background-color: #f0f1f3 !important;
+  border-color: #f0f1f3 !important;
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
 .navbar-brand {
   text-decoration: none;
   color: #777777;
@@ -69,9 +90,10 @@ body {
   max-width: 700px;
 }
 
-.pull-right{
+.pull-right {
   float: right;
 }
+
 .add-location-form {
   font-size: 12px !important;
 
@@ -95,9 +117,12 @@ body {
       }
     }
   }
-  input, button{
+
+  input,
+  button {
     font-size: 12px !important;
   }
+
   .form-group {
     display: flex;
     flex-direction: column-reverse;
@@ -112,6 +137,7 @@ body {
       outline: none;
       background-color: transparent;
       height: 32px;
+      margin-top: 0;
 
       &:focus {
         border: 0;
@@ -135,11 +161,14 @@ body {
     position: relative;
     width: 75px;
   }
-  th, td{
+
+  th,
+  td {
     padding: 5px !important;
   }
+
   .day-check {
-    line-height: 38px;
+    line-height: 32px;
     margin: 0;
     margin-left: 20px;
   }
