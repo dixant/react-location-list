@@ -1,7 +1,18 @@
 import React, { Fragment } from 'react';
+
+import { Table } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+
 import LocationHeader from './LocationHeader';
 import LocationBlank from './LocationBlank';
+import baseURL from '../constant/network.constant';
 
+import Pagination from './Pagination';
+function validateForm(elm = {}) {
+    console.log(elm)
+    return elm.value.isEmpty()
+}
 class Location extends React.Component {
     constructor(props) {
         super(props);
@@ -18,49 +29,59 @@ class Location extends React.Component {
             },
             addLoactionError: false,
             addLoactionErrorMsg: '',
-            locationList: []
+            closeModal: false,
+            locationList: [],
+            holdAllLocationList: [],
+            options: {
+                limit: 10,
+                page: 1,
+                totalCount: 0
+            }
         }
     }
-    addLocationHandler(e) {
 
+    addLocationHandler(e) {
         e.preventDefault();
         e.stopPropagation();
-        let { name, city, state, zipcode, phone, timezone, facility, appoinment } = e.currentTarget.elements;
+        let { name, city, state, zipcode, phone, timezone, facility, appoinment } = e.currentTarget.elements || {},
+            addLoactionError = false, addLoactionErrorMsg = "";
 
 
-        if (!name.value.length || name.value.trim() === "") {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "Location Name is Required" });
-            return false;
+        if (validateForm(name)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "Location Name is Required";
         }
-        else if (!city.value.length || city.value.trim() === "") {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "City is Required" });
-            return false;
+        else if (validateForm(city)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "City is Required";
         }
-        else if (!state.value.length || state.value.trim() === "") {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "State is Required" });
-            return false;
+        else if (validateForm(state)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "State is Required";
         }
-        else if (zipcode.value.length && zipcode.value.trim() !== "" && (zipcode.value.length > 10 || zipcode.value.length < 5)) {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "Zip Code should be 5 to 10 length" });
-            return false;
-
-
+        else if (!validateForm(zipcode) && (zipcode.value.length > 10 || zipcode.value.length < 5)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "Zip Code should be 5 to 10 length";
         }
-        else if (!phone.value.length || phone.value.trim() === "") {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "Phone is Required" });
-            return false;
+        else if (validateForm(phone)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "Phone is Required";
         }
         else if (parseInt(phone.value.length) !== 14) {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "Phone Number should be 10 digit" });
-            return false;
+            addLoactionError = true;
+            addLoactionErrorMsg = "Phone Number should be 10 digit";
         }
-        else if (!timezone.value.length || timezone.value.trim() === "") {
-            this.setState({ addLoactionError: true, addLoactionErrorMsg: "Time Zone is Required" });
+        else if (validateForm(timezone)) {
+            addLoactionError = true;
+            addLoactionErrorMsg = "Time Zone is Required";
+        }
+
+        if (!!addLoactionError) {
+            this.setState({ addLoactionError, addLoactionErrorMsg });
             return false;
         }
 
-
-        let formData = {
+        const formData = {
             locationName: name.value,
             city: city.value,
             state: state.value,
@@ -70,33 +91,134 @@ class Location extends React.Component {
             facilityTimes: JSON.parse(facility.dataset.objectvalue),
             appoinmentPool: appoinment.value
         }
-        console.log(formData);
-        this.setState({ addLoactionError: false, addLoactionErrorMsg: "" })
+
+        const myRequest = new Request(`${baseURL}locations`, {
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            method: 'POST',
+            body: JSON.stringify(formData)
+        });
+        fetch(myRequest)
+            .then(res => res.json())
+            .then(response => {
+                this.setState({
+                    addLoactionError,
+                    addLoactionErrorMsg,
+                    locationList: [...this.state.locationList, response],
+                    closeModal: true
+                })
+            })
+
 
     }
+    setCloseModalFalse() {
+        this.setState({
+            closeModal: false,
+            location: {
+                locationName: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                phone: '',
+                timeZone: '',
+                facilityTimes: {},
+                appoinmentPool: ''
+            }
+        })
+    }
+
     componentDidMount() {
-        window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-        window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || { READ_WRITE: "readwrite" };
-        window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
-        if (!window.indexedDB) {
-            console.log("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
-        }
+
+        let myRequest = new Request(`${baseURL}locations`, {
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            method: 'GET'
+        });
+        fetch(myRequest)
+            .then(res => res.json())
+            .then(response => {
+                //add pagination option to widget
+                const holdAllLocationList = response,
+                    totalCount = holdAllLocationList.length,
+                    { limit, page } = this.state.options,
+                    start = (limit * page) - limit, end = start + limit,
+                    locationList = holdAllLocationList.slice(start, end);
+
+                if (totalCount) {
+                    this.setState((prev) => {
+                        return {
+                            holdAllLocationList,
+                            locationList,
+                            options: {
+                                ...prev.options,
+                                totalCount
+                            }
+                        }
+                    })
+                }
+
+            })
+    }
+    onChange(data) {
+        const { options: { limit: preLimit, page: prePage }, holdAllLocationList } = this.state,
+            { limit = preLimit, page = prePage } = data,
+            start = (limit * page) - limit, end = start + limit,
+            locationList = holdAllLocationList.slice(start, end);
+        this.setState({ locationList, options: Object.assign(this.state.options, data) })
     }
     render() {
-        let { location, addLoactionError, addLoactionErrorMsg } = this.state;
+        let { location, locationList, addLoactionError, addLoactionErrorMsg, closeModal, options } = this.state;
         return (
-            <Fragment>
+            <>
                 <LocationHeader locationData={location}
+                    closeModal={closeModal}
                     addLocationHandler={this.addLocationHandler.bind(this)}
                     addLoactionError={addLoactionError}
                     addLoactionErrorMsg={addLoactionErrorMsg}
+                    setCloseModalFalse={this.setCloseModalFalse.bind(this)}
                 />
-                {/* <Data></Data> */}
-                <LocationBlank
+                {!!locationList.length && <Table responsive className="location-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Location Name</th>
+                            <th>Address</th>
+                            <th>Phone No.</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {locationList.map(({ id, locationName, city, state, zipCode, phone }) => (
+                            <tr key={id}>
+                                <td><span className="round">{id}</span></td>
+                                <td>{locationName}</td>
+                                <td>{`${city}, ${state} ${zipCode.length ? `, ${zipCode}` : ''}`}</td>
+                                <td>{phone}</td>
+                                <td>
+                                    <FontAwesomeIcon
+                                        className="action-icon edit"
+                                        icon={faPen}
+                                        title="edit"></FontAwesomeIcon>
+
+                                    <FontAwesomeIcon
+                                        className="action-icon delete"
+                                        icon={faTrash}
+                                        title="delete"></FontAwesomeIcon>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+
+                    <tfoot>
+                        <Pagination
+                            options={options}
+                            onChange={this.onChange.bind(this)}
+                        > </Pagination>
+                    </tfoot>
+                </Table>}
+                {!locationList.length && <LocationBlank
                     heading="Kindly Add Your Location First"
                     subHeading="There is no location added right now">
-                </LocationBlank>
-            </Fragment>
+                </LocationBlank>}
+            </>
         )
     }
 }
