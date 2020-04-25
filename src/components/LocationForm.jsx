@@ -38,8 +38,8 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     }, [closeModal]);
 
     useEffect(() => {
-            setLocation(locationData);
-        
+        setLocation(locationData);
+
     }, [locationData]);
 
     const toggle = () => setModal(!modal);
@@ -85,6 +85,7 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                 v.toAmPm = rowData.toAmPm;
             }
             newTarget[v.day] = v;
+            return 0;
         })
         setFacility(prev => {
             return ({ facility: newTarget })
@@ -179,7 +180,7 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
             if (v.checked === true) {
                 availableFacility[v.day] = v;
             }
-
+            return 0;
         })
         setLocation(prev => {
             return ({ ...prev, facilityTimes: availableFacility })
@@ -271,10 +272,11 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     }
     const getFacilityDisplay = (data) => {
         let displayData = [];
-        if (data != {}) {
+        if (data !== {}) {
             Object.values(data).map(v => {
                 let temp = `[${v.day}, ${v.fromTime}${v.fromAmPm} - ${v.toTime}${v.toAmPm}]`
                 displayData.push(temp)
+                return 0;
             })
             displayData = displayData.join(' ')
             return displayData
@@ -289,6 +291,7 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
             valueArr = value.split(',');
             valueArr.map((v) => {
                 if (v) { newPool.push(v.trim()) }
+                return 0;
             })
         }
         setLocation(prev => {
@@ -366,9 +369,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                         value={phone}
                                         onChange={({ target: { value } }) => {
                                             handlePhoneChange(value)
-                                            // setLocation(prev => {
-                                            //     return ({ ...prev, phone: value })
-                                            // })
                                         }}
                                     />
                                     <Label for="loc-phone">Phone Number*</Label>
@@ -428,7 +428,7 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                 return (
                                     <span className="tag-span" key={i}>{v}</span>
                                 )
-                            }
+                            } else { return null }
 
                         }))}
                         {addLoactionError && <div className="errorMsg">{addLoactionErrorMsg}</div>}

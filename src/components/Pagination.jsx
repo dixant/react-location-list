@@ -1,5 +1,7 @@
 import React from 'react';
-import { Input, Button } from "reactstrap";
+import { Input, Button, Label } from "reactstrap";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight, faChevronLeft, faStepBackward, faStepForward, faAngleRight, faSlash, faWindowMinimize, faCaretRight, faCaretLeft } from '@fortawesome/free-solid-svg-icons';
 
 
 const pageSize = [10, 20, 30, 40, 50];
@@ -10,37 +12,47 @@ const Pagination = ({ options: { limit = 10, page = 1, totalCount = 50 }, onChan
         disablePrevious = page === 1;
     return (
         <tr>
-            <td>
+            <td colSpan="5">
+                <Label>Items per Page:</Label>
                 <Input
                     type="select"
                     name="pageSize"
                     value={limit}
                     onChange={({ currentTarget: { value } }) => {
-                        onChange({ limit: parseInt(value), page:1 });
-                    }}
-                >
+                        onChange({ limit: parseInt(value), page: 1 });
+                    }}>
                     {pageSize.map((v, i) => (
                         <option key={i} value={v}>{v}</option>
                     ))}
-                </Input></td>
-            <td>{page} / {totalPage}</td>
-            <td>
-                <Button color="primary"
-                    disabled={disablePrevious}
-                    onClick={(e => { onChange({ page: 1 }) })}>{"<<"}</Button>
-                <Button
-                    disabled={disablePrevious}
-                    onClick={e => onChange({ page: page - 1 })}>{"<"}</Button>
+                </Input>
+                <span>{page} / {totalPage}</span>
+                <FontAwesomeIcon
+                    className={`action-icon first ${disablePrevious && 'disabled'}`}
+                    icon={faStepBackward}
+                    title="First"
+                    onClick={(e => { !disablePrevious && onChange({ page: 1 }) })}
+                ></FontAwesomeIcon>
+                <FontAwesomeIcon
+                    className={`action-icon prev ${disablePrevious && 'disabled'}`}
+                    icon={faChevronLeft}
+                    title="Prev"
+                    onClick={e => !disablePrevious && onChange({ page: page - 1 })}
+                ></FontAwesomeIcon>
+
+                <FontAwesomeIcon
+                    className={`action-icon next ${disableNext && 'disabled'}`}
+                    icon={faChevronRight}
+                    title="Next"
+                    onClick={e => !disableNext && onChange({ page: page + 1 })}
+                ></FontAwesomeIcon>
+                <FontAwesomeIcon
+                    className={`action-icon last ${disableNext && 'disabled'}`}
+                    icon={faStepForward}
+                    title="Last"
+                    disabled={disableNext}
+                    onClick={(e => { !disableNext && onChange({ page: totalPage }) })}
+                ></FontAwesomeIcon>
             </td>
-            <td>
-                <Button
-                    disabled={disableNext}
-                    onClick={e => onChange({ page: page + 1 })}
-                >{">"} </Button>
-                <Button color="primary"
-                    disabled={disableNext}
-                    onClick={(e => { onChange({ page: totalPage }) })}>{">>"}</Button></td>
-            <td></td>
         </tr >
     )
 }

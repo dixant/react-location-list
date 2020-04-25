@@ -177,9 +177,6 @@ body {
     margin: 0;
   }
 
-  .day-input {
-    // margin-top: 12px;
-  }
 
   .am-pm-group {
     position: relative;
@@ -231,7 +228,8 @@ table.location-table {
     border-bottom: 2px solid #f0f1f3;
   }
 
-  thead th, tfoot td {
+  thead th,
+  tfoot td {
     vertical-align: middle;
     border-bottom: 2px solid #f0f1f3;
     border-top: 2px solid #f0f1f3;
@@ -267,6 +265,80 @@ table.location-table {
   .action-icon {
     cursor: pointer;
     margin: 10px;
+  }
+
+  tfoot {
+    text-align: center;
+
+    select {
+      display: inline-block;
+      width: 75px;
+      border: 0;
+      border-radius: 0;
+      border-bottom: 2px solid #cec2c2;
+      outline: none;
+      background-color: transparent;
+      height: 32px;
+      margin-top: 0;
+      margin-left: 10px;
+      padding-left: 10px;
+      font-size: 12px;
+      padding-bottom: 0;
+      height: 32px;
+
+      &:focus {
+        border: 0;
+        border-bottom: 2px solid #3f7ca9;
+        box-shadow: none;
+
+        +label {
+          color: #3f7ca9;
+          font-weight: 600;
+        }
+      }
+
+    }
+
+    span {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
+    button {
+      margin: 0;
+      background-color: transparent;
+      border: none;
+      width: 25px;
+      height: 25px;
+    }
+
+    .action-icon {
+      margin: 0;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: 25px;
+      height: 25px;
+      font-size: 60px;
+      padding: 5px;
+      color: #2f5f82;
+
+      &:hover {
+        background-color: #f0f1f3;
+        border: 1px solid #f0f1f3;
+        color: #2f5f82;
+        border-radius: 25px;
+      }
+
+    }
+
+    .action-icon.disabled {
+      color: #777;
+    }
+
+    .rotate90 {
+      transform: rotate(90deg);
+    }
+
   }
 
   .edit {
