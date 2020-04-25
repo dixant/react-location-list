@@ -343,7 +343,7 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                                             })
                                         }}>
                                         {USStateList.map((v, i) => (
-                                            <option key={i} value={v.abbreviation}>{v.name}</option>
+                                            <option key={i} value={v.abbreviation}>{`${v.abbreviation} - ${v.name}`}</option>
                                         ))}
                                     </Input>
                                     <Label for="loc-state">State*</Label>

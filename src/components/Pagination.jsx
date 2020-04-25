@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input, Button, Label } from "reactstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronLeft, faStepBackward, faStepForward, faAngleRight, faSlash, faWindowMinimize, faCaretRight, faCaretLeft } from '@fortawesome/free-solid-svg-icons';
@@ -6,10 +6,11 @@ import { faChevronRight, faChevronLeft, faStepBackward, faStepForward, faAngleRi
 
 const pageSize = [10, 20, 30, 40, 50];
 
-const Pagination = ({ options: { limit = 10, page = 1, totalCount = 50 }, onChange }) => {
+const Pagination = ({ options: { limit = 10, page = 1, totalCount = 0 }, onChange }) => {
     const totalPage = parseInt(totalCount / limit) + (parseInt(totalCount % limit) > 0),
         disableNext = page === totalPage,
         disablePrevious = page === 1;
+
     return (
         <tr>
             <td colSpan="5">
@@ -25,7 +26,7 @@ const Pagination = ({ options: { limit = 10, page = 1, totalCount = 50 }, onChan
                         <option key={i} value={v}>{v}</option>
                     ))}
                 </Input>
-                <span>{page} / {totalPage}</span>
+                <span>{`${page} - ${totalPage} of ${totalCount}`}</span>
                 <FontAwesomeIcon
                     className={`action-icon first ${disablePrevious && 'disabled'}`}
                     icon={faStepBackward}

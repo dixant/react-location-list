@@ -10,7 +10,6 @@ import baseURL from '../constant/network.constant';
 
 import Pagination from './Pagination';
 function validateForm(elm = {}) {
-    console.log(elm)
     return elm.value.isEmpty()
 }
 class Location extends React.Component {
@@ -100,12 +99,14 @@ class Location extends React.Component {
         fetch(myRequest)
             .then(res => res.json())
             .then(response => {
-                this.setState({
-                    addLoactionError,
-                    addLoactionErrorMsg,
-                    locationList: [...this.state.locationList, response],
-                    closeModal: true
-                })
+                if (response) {
+                    this.setState({
+                        addLoactionError,
+                        addLoactionErrorMsg,
+                        holdAllLocationList: [...this.state.holdAllLocationList, response],
+                        closeModal: true
+                    })
+                }
             })
 
 
@@ -126,6 +127,33 @@ class Location extends React.Component {
         })
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.holdAllLocationList.length !== this.state.holdAllLocationList.length) {
+            let holdAllLocationList = this.state.holdAllLocationList,
+                totalCount = holdAllLocationList.length,
+                { limit, page } = this.state.options,
+                start = (limit * page) - limit, end = start + limit,
+                locationList = holdAllLocationList.slice(start, end);
+            if (!locationList.length) {
+                page = page - 1 || 1;
+                start = (limit * page) - limit;
+                end = start + limit;
+                locationList = holdAllLocationList.slice(start, end);
+            }
+            this.setState((prev) => {
+                return {
+                    holdAllLocationList,
+                    locationList,
+                    options: {
+                        ...prev.options,
+                        totalCount,
+                        page
+                    }
+                }
+            })
+        }
+
+    }
     componentDidMount() {
 
         let myRequest = new Request(`${baseURL}locations`, {
@@ -164,8 +192,30 @@ class Location extends React.Component {
             locationList = holdAllLocationList.slice(start, end);
         this.setState({ locationList, options: Object.assign(this.state.options, data) })
     }
+    editLocationHandler(id){
+        let editObject = this.state.locationList.filter(location => location.id === id)[0];
+        if(editObject){
+            console.log(editObject)
+            this.setState({
+                Location: editObject,
+            })
+        }
+    }
+    removeLocationHandler(id) {
+        let myRequest = new Request(`${baseURL}locations/${id}`, {
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            method: 'DELETE'
+        });
+        fetch(myRequest)
+            .then(res => res.json())
+            .then(response => {
+                let holdAllLocationListData = this.state.holdAllLocationList;
+                let updatedData = holdAllLocationListData.filter(elm => elm.id !== id);
+                this.setState({ holdAllLocationList: [...updatedData] })
+            })
+    }
     render() {
-        let { location, locationList, addLoactionError, addLoactionErrorMsg, closeModal, options } = this.state;
+        let { location, locationList, addLoactionError, addLoactionErrorMsg, closeModal, options, holdAllLocationList } = this.state;
         return (
             <>
                 <LocationHeader locationData={location}
@@ -175,7 +225,7 @@ class Location extends React.Component {
                     addLoactionErrorMsg={addLoactionErrorMsg}
                     setCloseModalFalse={this.setCloseModalFalse.bind(this)}
                 />
-                {!!locationList.length && <Table responsive className="location-table">
+                {!!holdAllLocationList.length && <Table responsive className="location-table">
                     <thead>
                         <tr>
                             <th></th>
@@ -196,12 +246,14 @@ class Location extends React.Component {
                                     <FontAwesomeIcon
                                         className="action-icon edit"
                                         icon={faPen}
-                                        title="edit"></FontAwesomeIcon>
+                                        title="edit"
+                                        onClick={this.editLocationHandler.bind(this, id)}></FontAwesomeIcon>
 
                                     <FontAwesomeIcon
                                         className="action-icon delete"
                                         icon={faTrash}
-                                        title="delete"></FontAwesomeIcon>
+                                        title="delete"
+                                        onClick={this.removeLocationHandler.bind(this, id)}></FontAwesomeIcon>
                                 </td>
                             </tr>
                         ))}
