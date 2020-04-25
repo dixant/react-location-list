@@ -14,3 +14,10 @@ ReactDOM.render(
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
+
+/* eslint-disable no-extend-native */
+//Adding prototypes
+String.prototype.isEmpty = function(){
+  const value = this.trim();
+  return !value.length;
+};
