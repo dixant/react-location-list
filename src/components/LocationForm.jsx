@@ -1,23 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Row, Form, FormGroup, Label, Input, Table, ButtonGroup } from "reactstrap";
 import USStateList from '../data/USStateList';
 import timezones from '../data/timezones';
 import facilityData from '../data/facilityData';
 
-const formatPhone = (value, previousValue) => {
+const formatPhone = (value) => {
     if (!value) return value;
     const currentValue = value.replace(/[^\d]/g, '');
     const cvLength = currentValue.length;
-
-    //if (!previousValue || value.length > previousValue.length) {
-        if (cvLength < 4) return currentValue;
-        if (cvLength < 7) return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
-        return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3, 6)}-${currentValue.slice(6, 10)}`;
-   // }
+    if (cvLength < 4) return currentValue;
+    if (cvLength < 7) return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
+    return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3, 6)}-${currentValue.slice(6, 10)}`;
 };
-// const extract = (str, pattern) => (str.match(pattern) || []).pop() || '';
 const formatZip = (value, previousValue) => {
-    //const d = extract(value, "[0-9a-zA-Z]+");
     if (!value) return value;
     const currentValue = value.replace(/[^\da-zA-Z]/g, '');
     const cvLength = currentValue.length;
@@ -28,32 +23,33 @@ const formatZip = (value, previousValue) => {
 }
 
 
-const validateInput = value => {
-    let error = ""
-
-    if (!value) error = "Required!"
-    else if (value.length !== 14) error = "Invalid phone format. ex: (555) 555-5555";
-
-    return error;
-};
-
-const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg }) => {
+const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg, closeModal, setCloseModalFalse }) => {
     const [modal, setModal] = useState(false);
     const [nestedModal, setNestedModal] = useState(false);
     const [location, setLocation] = useState(locationData);
     const [facility, setFacility] = useState(facilityData);
 
+    useEffect(() => {
+        if (closeModal) {
+            setModal(false);
+            setCloseModalFalse();
+        }
 
-    //const [tags, setTags] = React.useState(["example tag"])
+    }, [closeModal]);
+
+    useEffect(() => {
+            setLocation(locationData);
+        
+    }, [locationData]);
+
     const toggle = () => setModal(!modal);
-    const toggleNested = () => {
-        setNestedModal(!nestedModal);
-    }
+    const toggleNested = () => setNestedModal(!nestedModal);
+
     const { locationName, city, state, zipCode, phone, timeZone, facilityTimes, appoinmentPool } = location;
 
     const handlePhoneChange = (value) => {
         setLocation(prev => {
-            return ({ ...prev, phone: formatPhone(value, prev.phone) })
+            return ({ ...prev, phone: formatPhone(value) })
         })
     };
     const handleZipCodeChange = (value) => {
@@ -65,7 +61,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
         let { name, value } = target;
         let facilityData = facility["facility"];
         let currentFacility = facilityData[name];
-        console.log(currentFacility)
         currentFacility = {
             day: currentFacility.day,
             checked: currentFacility.checked,
@@ -121,7 +116,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
         }
         else {
             const currentTime = time.replace(/[^\d:]/g, '');
-            console.log(currentTime)
             if (!currentTime) {
                 hr = 12
             } else {
@@ -162,7 +156,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     }
     const handleCheckedDays = (cTarget) => {
         let { name, checked } = cTarget;
-        console.log(name)
         let facilityData = facility["facility"];
         let currentFacility = facilityData[name];
         currentFacility = {
@@ -195,7 +188,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     }
     const getFacility = () => {
         return (Object.values(facility.facility).map((v, i) => {
-            //console.log(facility)
             return (
                 <tr key={i}>
                     <th >
@@ -281,7 +273,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
         let displayData = [];
         if (data != {}) {
             Object.values(data).map(v => {
-                console.log(v);
                 let temp = `[${v.day}, ${v.fromTime}${v.fromAmPm} - ${v.toTime}${v.toAmPm}]`
                 displayData.push(temp)
             })
