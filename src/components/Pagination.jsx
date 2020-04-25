@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { Input, Button, Label } from "reactstrap";
+import React from 'react';
+import { Input, Label } from "reactstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronRight, faChevronLeft, faStepBackward, faStepForward, faAngleRight, faSlash, faWindowMinimize, faCaretRight, faCaretLeft } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faChevronLeft, faStepBackward, faStepForward } from '@fortawesome/free-solid-svg-icons';
 
 
 const pageSize = [10, 20, 30, 40, 50];
