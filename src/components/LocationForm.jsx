@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Row, Form, FormGroup, Label, Input, Table, ButtonGroup } from "reactstrap";
+
 import USStateList from '../data/USStateList';
 import timezones from '../data/timezones';
 import facilityData from '../data/facilityData';
@@ -23,26 +24,17 @@ const formatZip = (value, previousValue) => {
 }
 
 
-const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg, closeModal, setCloseModalFalse }) => {
-    const [modal, setModal] = useState(false);
+const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg, showModal, showModalMode, toggleModal }) => {
     const [nestedModal, setNestedModal] = useState(false);
     const [location, setLocation] = useState(locationData);
     const [facility, setFacility] = useState(facilityData);
 
-    useEffect(() => {
-        if (closeModal) {
-            setModal(false);
-            setCloseModalFalse();
-        }
-
-    }, [closeModal]);
 
     useEffect(() => {
         setLocation(locationData);
 
     }, [locationData]);
 
-    const toggle = () => setModal(!modal);
     const toggleNested = () => setNestedModal(!nestedModal);
 
     const { locationName, city, state, zipCode, phone, timeZone, facilityTimes, appoinmentPool } = location;
@@ -300,10 +292,10 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
     }
     return (
         <div>
-            <Button color="cadet" className="btn-curved" onClick={toggle}>{buttonLabel}</Button>
-            <Modal isOpen={modal} toggle={toggle} className={className} backdrop={false}>
+            <Button color="cadet" className="btn-curved" onClick={toggleModal}>{buttonLabel}</Button>
+            <Modal isOpen={showModal} className={className} backdrop={false}>
                 <ModalHeader>Add Locations</ModalHeader>
-                <Form autoComplete="off" onSubmit={addLocationHandler}>
+                <Form autoComplete="off" onSubmit={e => addLocationHandler(showModalMode, location, e)}>
                     <ModalBody>
                         <FormGroup>
                             <Input type="text"
@@ -434,8 +426,10 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                         {addLoactionError && <div className="errorMsg">{addLoactionErrorMsg}</div>}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="danger" onClick={toggle}>Cancel</Button>
-                        <Button color="cadet" type="submit" >Save</Button>{' '}
+                        <Button color="danger" onClick={toggleModal}>Cancel</Button>
+                        {showModalMode === "create" && <Button color="cadet" type="submit" >Save</Button>}
+                        {showModalMode === "edit" && <Button color="cadet" type="submit" >Update</Button>}
+
                     </ModalFooter>
                 </Form>
             </Modal>

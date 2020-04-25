@@ -2,18 +2,19 @@ import React from 'react';
 import { Navbar, NavbarBrand } from "reactstrap";
 import LocationForm from './LocationForm';
 
-const LocationHeader = ({ locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg, closeModal, setCloseModalFalse }) => {
+const LocationHeader = ({ locationData, addLocationHandler, addLoactionError, addLoactionErrorMsg, showModal, showModalMode, toggleModal }) => {
     return (
         <Navbar>
             <NavbarBrand href="/">Location</NavbarBrand>
             <LocationForm buttonLabel="+ Add Location"
                 className="add-location-form"
                 locationData={locationData}
-                closeModal={closeModal}
+                showModal={showModal}
+                showModalMode={showModalMode}
+                toggleModal={toggleModal}
                 addLocationHandler={addLocationHandler}
                 addLoactionError={addLoactionError}
-                addLoactionErrorMsg={addLoactionErrorMsg}
-                setCloseModalFalse={setCloseModalFalse}>
+                addLoactionErrorMsg={addLoactionErrorMsg}>
             </LocationForm>
         </Navbar>
     )

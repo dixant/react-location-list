@@ -28,7 +28,8 @@ class Location extends React.Component {
             },
             addLoactionError: false,
             addLoactionErrorMsg: '',
-            closeModal: false,
+            showModal: false,
+            showModalMode: 'create',
             locationList: [],
             holdAllLocationList: [],
             options: {
@@ -39,7 +40,7 @@ class Location extends React.Component {
         }
     }
 
-    addLocationHandler(e) {
+    addLocationHandler(showModalMode, {id: locationId}, e) {
         e.preventDefault();
         e.stopPropagation();
         let { name, city, state, zipcode, phone, timezone, facility, appoinment } = e.currentTarget.elements || {},
@@ -90,45 +91,56 @@ class Location extends React.Component {
             facilityTimes: JSON.parse(facility.dataset.objectvalue),
             appoinmentPool: appoinment.value
         }
-
-        const myRequest = new Request(`${baseURL}locations`, {
-            headers: { "Content-Type": "application/json; charset=utf-8" },
-            method: 'POST',
-            body: JSON.stringify(formData)
-        });
-        fetch(myRequest)
-            .then(res => res.json())
-            .then(response => {
-                if (response) {
-                    this.setState({
-                        addLoactionError,
-                        addLoactionErrorMsg,
-                        holdAllLocationList: [...this.state.holdAllLocationList, response],
-                        closeModal: true
+        let myRequest;
+        switch (showModalMode) {
+            case "create":
+                myRequest = new Request(`${baseURL}locations`, {
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+                fetch(myRequest)
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response) {
+                            this.setState({
+                                addLoactionError,
+                                addLoactionErrorMsg,
+                                holdAllLocationList: [...this.state.holdAllLocationList, response],
+                                showModal: false
+                            })
+                        }
                     })
-                }
-            })
+                break;
+            case "edit":
+                myRequest = new Request(`${baseURL}locations/${locationId}`, {
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    method: 'PUT',
+                    body: JSON.stringify(formData)
+                });
+                fetch(myRequest)
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response) {
+                            let newData = this.state.holdAllLocationList.map(elm=>elm.id === response.id ? response : elm);
+                            this.setState({
+                                addLoactionError,
+                                addLoactionErrorMsg,
+                                holdAllLocationList: newData,
+                                showModal: false
+                            })
+                        }
+                    })
+                break;
+            //no default
+        }
 
 
-    }
-    setCloseModalFalse() {
-        this.setState({
-            closeModal: false,
-            location: {
-                locationName: '',
-                city: '',
-                state: '',
-                zipCode: '',
-                phone: '',
-                timeZone: '',
-                facilityTimes: {},
-                appoinmentPool: ''
-            }
-        })
+
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (prevState.holdAllLocationList.length !== this.state.holdAllLocationList.length) {
+        if (prevState.holdAllLocationList !== this.state.holdAllLocationList) {
             let holdAllLocationList = this.state.holdAllLocationList,
                 totalCount = holdAllLocationList.length,
                 { limit, page } = this.state.options,
@@ -192,12 +204,16 @@ class Location extends React.Component {
             locationList = holdAllLocationList.slice(start, end);
         this.setState({ locationList, options: Object.assign(this.state.options, data) })
     }
-    editLocationHandler(id){
+    editLocationHandler(id) {
         let editObject = this.state.locationList.filter(location => location.id === id)[0];
-        if(editObject){
-            console.log(editObject)
+        if (editObject) {
+
             this.setState({
-                Location: editObject,
+                location: editObject,
+                showModal: true,
+                showModalMode: 'edit',
+                addLoactionError: false,
+                addLoactionErrorMsg: '',
             })
         }
     }
@@ -214,16 +230,35 @@ class Location extends React.Component {
                 this.setState({ holdAllLocationList: [...updatedData] })
             })
     }
+    toggleModal() {
+        this.setState({
+            showModal: !this.state.showModal,
+            location: {
+                locationName: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                phone: '',
+                timeZone: '',
+                facilityTimes: {},
+                appoinmentPool: ''
+            },
+            showModalMode: "create",
+            addLoactionError: false,
+            addLoactionErrorMsg: '',
+        })
+    }
     render() {
-        let { location, locationList, addLoactionError, addLoactionErrorMsg, closeModal, options, holdAllLocationList } = this.state;
+        let { location, locationList, addLoactionError, addLoactionErrorMsg, showModalMode, showModal, options, holdAllLocationList } = this.state;
         return (
             <>
                 <LocationHeader locationData={location}
-                    closeModal={closeModal}
+                    showModal={showModal}
+                    showModalMode={showModalMode}
+                    toggleModal={this.toggleModal.bind(this)}
                     addLocationHandler={this.addLocationHandler.bind(this)}
                     addLoactionError={addLoactionError}
                     addLoactionErrorMsg={addLoactionErrorMsg}
-                    setCloseModalFalse={this.setCloseModalFalse.bind(this)}
                 />
                 {!!holdAllLocationList.length && <Table responsive className="location-table">
                     <thead>
