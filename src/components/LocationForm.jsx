@@ -113,7 +113,6 @@ const LocationForm = ({ buttonLabel, className, locationData, addLocationHandler
                 hr = 12
             } else {
                 if (currentTime.includes(":")) {
-                    console.log(currentTime.indexOf(":") + 2)
                     hr = parseInt(currentTime.substring(0, currentTime.indexOf(":")).substring(0, 2)) || 12;
                     ampm = hr > 12 && hr <= 24 ? "PM" : hr > 24 ? "PM" : "AM";
                     hr = hr > 12 && hr <= 24 ? hr - 12 : hr > 24 ? 12 : hr;
