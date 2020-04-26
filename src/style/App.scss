@@ -262,6 +262,15 @@ table.location-table {
     padding-top: 5px;
   }
 
+  th {
+    cursor: pointer;
+
+    .sort-icon {
+      margin-left: 10px;
+      color: #2f5f82;
+    }
+  }
+
   .action-icon {
     cursor: pointer;
     margin: 10px;

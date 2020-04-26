@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Table } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons'
 
 import LocationHeader from './LocationHeader';
 import LocationBlank from './LocationBlank';
@@ -36,16 +36,33 @@ class Location extends React.Component {
                 limit: 10,
                 page: 1,
                 totalCount: 0
-            }
+            },
+            sortName: undefined,
+            sortOrder: 'asc'
         }
     }
-
-    addLocationHandler(showModalMode, {id: locationId}, e) {
+    getUpdatedLocationList(holdAllLocationList) {
+        let totalCount = holdAllLocationList.length,
+            { limit, page } = this.state.options,
+            start = (limit * page) - limit, end = start + limit,
+            locationList = holdAllLocationList.slice(start, end);
+        if (!locationList.length) {
+            page = page - 1 || 1;
+            start = (limit * page) - limit;
+            end = start + limit;
+            locationList = holdAllLocationList.slice(start, end);
+        }
+        return {
+            locationList,
+            totalCount,
+            page
+        }
+    }
+    addLocationHandler(showModalMode, { id: locationId }, e) {
         e.preventDefault();
         e.stopPropagation();
         let { name, city, state, zipcode, phone, timezone, facility, appoinment } = e.currentTarget.elements || {},
             addLoactionError = false, addLoactionErrorMsg = "";
-
 
         if (validateForm(name)) {
             addLoactionError = true;
@@ -103,12 +120,23 @@ class Location extends React.Component {
                     .then(res => res.json())
                     .then(response => {
                         if (response) {
-                            this.setState({
-                                addLoactionError,
-                                addLoactionErrorMsg,
-                                holdAllLocationList: [...this.state.holdAllLocationList, response],
-                                showModal: false
+                            let holdAllLocationList = [...this.state.holdAllLocationList, response],
+                                { locationList, totalCount, page } = this.getUpdatedLocationList(holdAllLocationList)
+                            this.setState((prev) => {
+                                return {
+                                    holdAllLocationList,
+                                    locationList,
+                                    addLoactionError,
+                                    addLoactionErrorMsg,
+                                    showModal: false,
+                                    options: {
+                                        ...prev.options,
+                                        totalCount,
+                                        page
+                                    }
+                                }
                             })
+
                         }
                     })
                 break;
@@ -122,11 +150,13 @@ class Location extends React.Component {
                     .then(res => res.json())
                     .then(response => {
                         if (response) {
-                            let newData = this.state.holdAllLocationList.map(elm=>elm.id === response.id ? response : elm);
+                            let newData = this.state.holdAllLocationList.map(elm => elm.id === response.id ? response : elm),
+                                { locationList } = this.getUpdatedLocationList(newData)
                             this.setState({
                                 addLoactionError,
                                 addLoactionErrorMsg,
                                 holdAllLocationList: newData,
+                                locationList,
                                 showModal: false
                             })
                         }
@@ -134,40 +164,9 @@ class Location extends React.Component {
                 break;
             //no default
         }
-
-
-
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.holdAllLocationList !== this.state.holdAllLocationList) {
-            let holdAllLocationList = this.state.holdAllLocationList,
-                totalCount = holdAllLocationList.length,
-                { limit, page } = this.state.options,
-                start = (limit * page) - limit, end = start + limit,
-                locationList = holdAllLocationList.slice(start, end);
-            if (!locationList.length) {
-                page = page - 1 || 1;
-                start = (limit * page) - limit;
-                end = start + limit;
-                locationList = holdAllLocationList.slice(start, end);
-            }
-            this.setState((prev) => {
-                return {
-                    holdAllLocationList,
-                    locationList,
-                    options: {
-                        ...prev.options,
-                        totalCount,
-                        page
-                    }
-                }
-            })
-        }
-
-    }
     componentDidMount() {
-
         let myRequest = new Request(`${baseURL}locations`, {
             headers: { "Content-Type": "application/json; charset=utf-8" },
             method: 'GET'
@@ -177,10 +176,7 @@ class Location extends React.Component {
             .then(response => {
                 //add pagination option to widget
                 const holdAllLocationList = response,
-                    totalCount = holdAllLocationList.length,
-                    { limit, page } = this.state.options,
-                    start = (limit * page) - limit, end = start + limit,
-                    locationList = holdAllLocationList.slice(start, end);
+                    { locationList, totalCount, page } = this.getUpdatedLocationList(holdAllLocationList)
 
                 if (totalCount) {
                     this.setState((prev) => {
@@ -189,12 +185,12 @@ class Location extends React.Component {
                             locationList,
                             options: {
                                 ...prev.options,
-                                totalCount
+                                totalCount,
+                                page
                             }
                         }
                     })
                 }
-
             })
     }
     onChange(data) {
@@ -207,7 +203,6 @@ class Location extends React.Component {
     editLocationHandler(id) {
         let editObject = this.state.locationList.filter(location => location.id === id)[0];
         if (editObject) {
-
             this.setState({
                 location: editObject,
                 showModal: true,
@@ -226,8 +221,21 @@ class Location extends React.Component {
             .then(res => res.json())
             .then(response => {
                 let holdAllLocationListData = this.state.holdAllLocationList;
-                let updatedData = holdAllLocationListData.filter(elm => elm.id !== id);
-                this.setState({ holdAllLocationList: [...updatedData] })
+                let updatedData = holdAllLocationListData.filter(elm => elm.id !== id),
+                    holdAllLocationList = updatedData,
+                    { locationList, totalCount, page } = this.getUpdatedLocationList(holdAllLocationList)
+
+                this.setState((prev) => {
+                    return {
+                        holdAllLocationList,
+                        locationList,
+                        options: {
+                            ...prev.options,
+                            totalCount,
+                            page
+                        }
+                    }
+                })
             })
     }
     toggleModal() {
@@ -248,8 +256,42 @@ class Location extends React.Component {
             addLoactionErrorMsg: '',
         })
     }
+
+    sortData(column) {
+        let { holdAllLocationList, sortOrder, sortName, options: { limit, page } } = this.state,
+            order = 'asc', orderBy = sortName || column;
+
+        if (sortName === column) {
+            order = sortOrder === 'asc' ? 'dsc' : 'asc';
+        } else {
+            orderBy = column;
+        }
+
+        let sortedData = holdAllLocationList.sort((a, b) => {
+            const bandA = column === 'id' ? a[column] : a[column].toUpperCase();
+            const bandB = column === 'id' ? b[column] : b[column].toUpperCase();
+            let comparison = 0;
+            if (bandA > bandB) {
+                comparison = 1;
+            } else if (bandA < bandB) {
+                comparison = -1;
+            }
+            if (order === "asc") {
+                return comparison;
+            }
+            else {
+                return comparison * -1;
+            }
+
+        });
+
+        const start = (limit * page) - limit, end = start + limit,
+            locationList = holdAllLocationList.slice(start, end);
+
+        this.setState({ holdAllLocationList: sortedData, sortName: orderBy, sortOrder: order, locationList })
+    }
     render() {
-        let { location, locationList, addLoactionError, addLoactionErrorMsg, showModalMode, showModal, options, holdAllLocationList } = this.state;
+        let { location, locationList, addLoactionError, addLoactionErrorMsg, showModalMode, showModal, options, holdAllLocationList, sortName, sortOrder } = this.state;
         return (
             <>
                 <LocationHeader locationData={location}
@@ -263,10 +305,22 @@ class Location extends React.Component {
                 {!!holdAllLocationList.length && <Table responsive className="location-table">
                     <thead>
                         <tr>
-                            <th></th>
-                            <th>Location Name</th>
-                            <th>Address</th>
-                            <th>Phone No.</th>
+                            <th onClick={this.sortData.bind(this, "id")}></th>
+                            <th onClick={this.sortData.bind(this, "locationName")}>Location Name
+                            {sortName === "locationName" && <FontAwesomeIcon
+                                    className="sort-icon up"
+                                    icon={sortOrder === 'asc' ? faSortUp : faSortDown}
+                                    title="sort"></FontAwesomeIcon>}</th>
+                            <th onClick={this.sortData.bind(this, "city")}>Address
+                            {sortName === "city" && <FontAwesomeIcon
+                                    className="sort-icon up"
+                                    icon={sortOrder === 'asc' ? faSortUp : faSortDown}
+                                    title="sort"></FontAwesomeIcon>}</th>
+                            <th onClick={this.sortData.bind(this, "phone")}>Phone No.
+                            {sortName === "phone" && <FontAwesomeIcon
+                                    className="sort-icon up"
+                                    icon={sortOrder === 'asc' ? faSortUp : faSortDown}
+                                    title="sort"></FontAwesomeIcon>}</th>
                             <th></th>
                         </tr>
                     </thead>

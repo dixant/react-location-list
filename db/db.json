@@ -63,7 +63,7 @@
       "city": "Arlington",
       "state": "TN",
       "zipCode": "38002",
-      "phone": "(897) 987-6567",
+      "phone": "(897) 987-6568",
       "timeZone": "GMT-12:00",
       "facilityTimes": {},
       "appoinmentPool": "",
@@ -189,6 +189,34 @@
       "facilityTimes": {},
       "appoinmentPool": "",
       "id": 15
+    },
+    {
+      "locationName": "420 Sea Beach",
+      "city": "Irvine",
+      "state": "CA",
+      "zipCode": "",
+      "phone": "(966) 041-4492",
+      "timeZone": "GMT-08:00",
+      "facilityTimes": {
+        "Mon": {
+          "day": "Mon",
+          "checked": true,
+          "fromTime": "12:00",
+          "fromAmPm": "AM",
+          "toTime": "12:00",
+          "toAmPm": "PM"
+        },
+        "Thr": {
+          "day": "Thr",
+          "checked": true,
+          "fromTime": "07:00",
+          "fromAmPm": "AM",
+          "toTime": "04:00",
+          "toAmPm": "PM"
+        }
+      },
+      "appoinmentPool": "",
+      "id": 16
     }
   ]
 }
